@@ -2680,6 +2680,36 @@ static vk_device ggml_vk_get_device(size_t idx) {
     return vk_instance.devices[idx];
 }
 
+struct GpuPipelineConfig {
+    // List of all aliases for a given GPU.
+    // For example, this can include names like "NAVI10", "RX 5700", etc.
+    std::vector<std::string> device_names;
+
+    // Default subgroup size for this GPU.
+    // Defaults to 0 if not explicitly provided.
+    uint32_t default_subgroup_size = 0;
+};
+
+// Define configurations for different GPUs.
+static std::vector<GpuPipelineConfig> gpu_pipeline_configs = {
+    {
+        {"NAVI10", "NAVI14", "RX 5700", "RX 5600", "RX 5500"},
+        32
+    },
+};
+
+static uint32_t get_subgroup_size(const std::string &device_name) {
+    for (const auto &config : gpu_pipeline_configs) {
+        for (const auto &alias : config.device_names) {
+            if (device_name.find(alias) != std::string::npos) {
+                return config.default_subgroup_size;
+            }
+        }
+    }
+    // If no matching configuration is found, return 0.
+    return 0;
+}
+
 static void ggml_vk_print_gpu_info(size_t idx) {
     GGML_ASSERT(idx < vk_instance.device_indices.size());
     size_t dev_num = vk_instance.device_indices[idx];
@@ -2705,7 +2735,9 @@ static void ggml_vk_print_gpu_info(size_t idx) {
     subgroup_props.pNext = &driver_props;
     physical_device.getProperties2(&props2);
 
-    const size_t subgroup_size = subgroup_props.subgroupSize;
+    uint32_t default_subgroup_size = get_subgroup_size(props2.properties.deviceName.data());
+    const size_t subgroup_size = (default_subgroup_size != 0) ? default_subgroup_size : subgroup_props.subgroupSize;
+
     const bool uma = props2.properties.deviceType == vk::PhysicalDeviceType::eIntegratedGpu;
 
     bool fp16_storage = false;
