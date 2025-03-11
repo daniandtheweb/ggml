@@ -1462,7 +1462,7 @@ struct GpuPipelineConfig {
 // Define configurations for different GPUs.
 static std::vector<GpuPipelineConfig> gpu_pipeline_configs = {
     {
-        {"NAVI10", "NAVI14", "RX 5700", "RX 5600", "RX 5500"},
+        {"NAVI10", "NAVI14", "RX 5700", "RX 5600", "RX 7800"},
         {
             {"soft_max_f32", 64}, {"soft_max_f32_wg512", 64},
             {"soft_max_f32_f16", 64}, {"soft_max_f32_f16_wg512", 64},
